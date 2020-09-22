@@ -222,6 +222,21 @@ unbiased estimators of its weights. I assume that
 ![r\_f=0\\%](https://latex.codecogs.com/png.latex?r_f%3D0%5C%25
 "r_f=0\\%").
 
+``` r
+n <- ncol(fin_return_learning)
+T <- nrow(fin_return_learning)
+e <- rep(1, n)
+perio <- 12
+rf <- 0
+
+mu <- colMeans(fin_return_learning) * perio - rf
+Sigma <- cov(fin_return_learning) * (T - 1) / (T - n - 2) * perio
+A <- t(e) %*% solve(Sigma) %*% mu
+omega <- 1 / as.numeric(A) * solve(Sigma) %*% mu
+barnames <- c('France Equity', 'BRIC Equity', 'US Corporate Bond')
+barplot(as.numeric(omega), col = 'black', names.arg = barnames, ylim = c(0,1))
+```
+
 ![](workshop2_files/figure-gfm/TP-1.png)<!-- -->
 
 The realised return observed on the backtest sample of the portfolio
@@ -278,6 +293,24 @@ Q[1] <- 0.05 # negative view for France equity index
 Q[2] <- 0.05 # negative view for BRIC equity index
 Q[3] <- 0.10 # positive view for US Corporate bonds index
 tau <- 0.9
+```
+
+``` r
+# Mixed estimation of returns
+Omega <- diag(diag(Sigma), n, n)
+mu_mixed <-
+  solve(solve(tau * Sigma) + solve(Omega)) %*% (solve(tau * Sigma) %*% mu +
+                                                  solve(Omega) %*% Q)
+
+# Tactical allocation with views directly
+A_Q <- t(e) %*% solve(Sigma) %*% Q
+omega_Q <- 1 / as.numeric(A_Q) * solve(Sigma) %*% Q
+# barplot(as.numeric(omega_Q), col = 'black', names.arg = barnames, ylim = c(0,1))
+
+# Tactical allocation with mixed estimation 
+A_mixed <- t(e) %*% solve(Sigma) %*% mu_mixed
+omega_mixed <- 1 / as.numeric(A_mixed) * solve(Sigma) %*% mu_mixed
+barplot(as.numeric(omega_mixed), col = 'black', names.arg = barnames, ylim = c(0,1))
 ```
 
 ![](workshop2_files/figure-gfm/BL-1.png)<!-- -->
